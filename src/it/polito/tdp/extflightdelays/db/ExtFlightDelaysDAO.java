@@ -7,10 +7,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.extflightdelays.model.Airline;
 import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Flight;
+import it.polito.tdp.extflightdelays.model.Rotta;
 
 public class ExtFlightDelaysDAO {
 
@@ -80,6 +82,66 @@ public class ExtFlightDelaysDAO {
 						rs.getDouble("ELAPSED_TIME"), rs.getInt("DISTANCE"),
 						rs.getTimestamp("ARRIVAL_DATE").toLocalDateTime(), rs.getDouble("ARRIVAL_DELAY"));
 				result.add(flight);
+			}
+
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	
+	public List<Airport> loadAllAirportsMigliaSelezionate(int distanza, Map<Integer, Airport> mappa) {
+		String sql = "SELECT distinct f.ORIGIN_AIRPORT_ID as id " + 
+				"FROM flights AS f " + 
+				"WHERE f.DISTANCE>= ? " + 
+				"ORDER BY f.ORIGIN_AIRPORT_ID ";
+		List<Airport> result = new ArrayList<Airport>();
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, distanza);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+			Airport airport=null;
+				 airport = mappa.get(rs.getInt("id"));
+				
+				result.add(airport);
+			}
+
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+	
+	public List<Rotta> liadRotte(int distanza, Map<Integer,Airport> mappa) {
+		String sql = "SELECT  f.ORIGIN_AIRPORT_ID, f.DESTINATION_AIRPORT_ID, AVG(f.DISTANCE) as dist  " + 
+				"				FROM flights AS f " + 
+				"			WHERE f.DISTANCE>? " + 
+				"				Group BY f.ORIGIN_AIRPORT_ID, f.DESTINATION_AIRPORT_ID " + 
+				"				HAVING AVG(f.DISTANCE)>? ";
+		List<Rotta> result = new ArrayList<Rotta>();
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, distanza);
+			st.setInt(2, distanza);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				result.add(new Rotta(mappa.get(rs.getInt("ORIGIN_AIRPORT_ID")), mappa.get(rs.getInt("DESTINATION_AIRPORT_ID")), rs.getDouble("dist")));
 			}
 
 			conn.close();

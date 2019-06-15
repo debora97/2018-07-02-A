@@ -9,6 +9,7 @@ package it.polito.tdp.extflightdelays;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -37,7 +38,7 @@ public class ExtFlightDelaysController {
     private Button btnAnalizza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoPartenza"
-    private ComboBox<?> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAeroportiConnessi"
     private Button btnAeroportiConnessi; // Value injected by FXMLLoader
@@ -50,11 +51,28 @@ public class ExtFlightDelaysController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
+    	try {
+    		int miglia=Integer.parseInt(distanzaMinima.getText());
+    		if(miglia!=0) {
+    			model.getAllAp();
+    			model.getApMiglia(miglia);
+    			model.creaGrafo();
+    			cmbBoxAeroportoPartenza.getItems().addAll(model.getVertici());
+    		}
+    		
+    	}catch(Exception e){
+    		System.out.println("inserisci distanza minima ");
+    	}
+    	
 
     }
 
     @FXML
     void doCalcolaAeroportiConnessi(ActionEvent event) {
+    	Airport a =cmbBoxAeroportoPartenza.getValue();
+    	if(a!=null) {
+    		txtResult.appendText(model.getVicini(a).toString());
+    	}else txtResult.appendText("Seleziona un ap ");
 
     }
 
