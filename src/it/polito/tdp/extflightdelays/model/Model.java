@@ -1,10 +1,13 @@
 package it.polito.tdp.extflightdelays.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -19,6 +22,8 @@ public class Model {
 	private List<Airport> listaApMiglia;
 	private SimpleWeightedGraph<Airport, DefaultWeightedEdge> grafo;
 	private List<Rotta> rotte;
+	private List<Airport> best;
+	double numeroMassimo;
 	
 	public  Model() {
 		listaTuttiAp= new LinkedList<Airport>();
@@ -96,6 +101,56 @@ public class Model {
 		});
 		return vicini;
 	}
+	
+	
+	public List<Airport> trovaPercorso(Airport partenza, double maxMiglia)
+	{
+		best= new ArrayList <Airport>();
+		numeroMassimo=0;
+		List<Airport> parziale= new LinkedList <Airport>();
+		parziale.add(partenza);
+		cerca(parziale, maxMiglia);
+		return best;		
+	}
 
+
+	private void cerca(List<Airport> parziale, double maxMiglia) {
+
+		List<Airport> vicini= this.getVicini(parziale.get(parziale.size()-1));
+		
+		if(parziale.size()>numeroMassimo) {
+			
+			this.best= new ArrayList<>(parziale);
+			numeroMassimo=parziale.size();
+			
+		}
+		for (Airport a: vicini) {
+			DefaultWeightedEdge edge= grafo.getEdge(a, parziale.get(parziale.size()-1));
+			double peso= grafo.getEdgeWeight(edge);
+			if(this.getMiglia(parziale)+peso<=maxMiglia) {
+				if(!parziale.contains(a)) {
+					parziale.add(a);
+					this.cerca(parziale, maxMiglia);
+					parziale.remove(parziale.size()-1);
+				}
+			}
+				
+		}
+	}
+
+
+	private double getMiglia(List<Airport> parziale) {
+		double nmiglia=0;
+		for(int i=0; i<parziale.size()-1;i++) {
+			DefaultWeightedEdge edge= grafo.getEdge(parziale.get(i), parziale.get(i+1));
+			double peso= grafo.getEdgeWeight(edge);
+			nmiglia+=peso;
+			
+			
+			
+		}
+			
+		return nmiglia;
+	}
 
 }

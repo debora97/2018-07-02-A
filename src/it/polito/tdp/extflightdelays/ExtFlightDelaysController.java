@@ -78,7 +78,15 @@ public class ExtFlightDelaysController {
 
     @FXML
     void doCercaItinerario(ActionEvent event) {
+    
+    	double maxMiglia= Double.parseDouble(numeroVoliTxtInput.getText());
 
+    	Airport a= cmbBoxAeroportoPartenza.getValue();
+    	if(a==null)
+    	    return;
+    	model.trovaPercorso(a, maxMiglia);
+    	txtResult.clear();
+    	txtResult.appendText(model.trovaPercorso(a, maxMiglia).toString());
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
